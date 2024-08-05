@@ -15,7 +15,7 @@ Se usa Google Gemini como LLM.
 
 Los archivos se almacenan en la carpeta data
 
-### Instalar librerías requeridas para el proyecto
+## Instalar librerías requeridas para el proyecto
 
 Antes de instalar las librerías, debe generar un entorno virtual de python como buena práctica.  A continuación en nuestro terminal ejecutamos:
 
@@ -33,6 +33,17 @@ Luego instalar las librerías
 
 ```
 pip install -r requirements.txt
+```
+
+## API KEY Gemini
+
+La API KEY de Gemini se guarda en el archivo `secrets.toml` en la carpeta `.streamlit/`.
+
+```
+# .streamlit/secrets.toml
+
+[google_gemini]
+api_key_gemini = "your_key"
 ```
 
 ## Generar Modelo

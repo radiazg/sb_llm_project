@@ -1,10 +1,13 @@
 import streamlit as st
 from langchain_community.tools import DuckDuckGoSearchRun
 from langchain_core.messages import HumanMessage, AIMessage
-from langchain.agents import Tool
+from langchain.agents import AgentExecutor, Tool, initialize_agent
+from langchain_experimental.agents import create_csv_agent
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
+from langchain_openai import ChatOpenAI
 from langchain_community.vectorstores import FAISS
+from langchain.llms import OpenAI
 import os
 
 
@@ -13,6 +16,8 @@ DIR_PATH_TXT = "data/txt"
 DIR_PATH_CSV = 'data/csv/Key_Results_all.csv'
 
 os.environ['GOOGLE_API_KEY'] = st.secrets["google_gemini"]["api_key_gemini"]
+os.environ['OPENAI_API_KEY'] = st.secrets["openai"]["api_key_openai"]
+
 
 
 #get prompt RAG
@@ -23,6 +28,7 @@ def get_prompt():
             "system",
             """
             Eres un asistente, si recibes un input en Español, responde en Español. Si recibes un input en Ingles, responde en Ingles. No Incluya ningun AIMessage en el mensaje.
+            Al finalizar la respuesta final debes traducirla al Español.
             Responde las siguientes preguntas en detalle usando el siguiente contexto e historia de chat:
 
             Contexto: {context}
@@ -36,7 +42,7 @@ def get_prompt():
 
     return prompt
 
-def get_faiss():
+def get_faiss(user_query):
     load_db = FAISS.load_local(FAISS_PATH, GoogleGenerativeAIEmbeddings(model="models/embedding-001"), allow_dangerous_deserialization=True)
     context = load_db.max_marginal_relevance_search(user_query, k=3)
     context_text = "\n\n---\n\n".join([doc.page_content for doc in context])
@@ -46,16 +52,19 @@ def stream_response(response):
     for chunk in response:
         yield chunk.content
     
-search_tool = [DuckDuckGoSearchRun(name="Search")]
-faiss_tool = [
+
+tools = [
     Tool(
-        name="Search FAISS",
+        name="FAISS_Search",
         func=get_faiss,
-        description="Útil para buscar información en el índice FAISS."
+        description="Útil para cuando necesitas buscar información en tus documentos.",
+    ),
+    Tool(
+        name = "CSV_Agent",
+        func=create_csv_agent(OpenAI(temperature=0), DIR_PATH_CSV, verbose=True, allow_dangerous_code=True),
+        description="Útil para cuando necesitas consultar el archivo CSV 'Key_Results_all.csv'.",
     )
 ]
-
-tools = [search_tool, faiss_tool]
 
 
 # rev chat history
@@ -85,29 +94,28 @@ for message in st.session_state.chat_history:
 user_query = st.chat_input("Tu pregunta")
 
 if user_query is not None and user_query != "":
-    #load_db = FAISS.load_local(FAISS_PATH, GoogleGenerativeAIEmbeddings(model="models/embedding-001"), allow_dangerous_deserialization=True)
-    #context = load_db.max_marginal_relevance_search(user_query, k=3)
-    #context_text = "\n\n---\n\n".join([doc.page_content for doc in context])
-
-    
     st.session_state.chat_history.append(HumanMessage(user_query))
     
     with st.chat_message("Human"):
         st.markdown(user_query)
         
     with st.chat_message("AI"):
-        llm = ChatGoogleGenerativeAI(model="gemini-pro", convert_system_message_to_human=True)
-        context_text = get_faiss()
         prompt = get_prompt()
+        llm = ChatOpenAI(model_name="gpt-4o-mini", streaming=True)
+        context_text = get_faiss(user_query)
+        #chain = prompt | llm
+        agent = initialize_agent(tools, llm, agent="zero-shot-react-description", verbose=True)
         
-        chain = prompt | llm
-        ai_response = st.write_stream(stream_response(chain.stream(
+        #ai_response = chain.stream(
+        ai_response = agent.invoke(
             {
-            "context": context_text,
-            "chat_history": st.session_state.chat_history,
-            "input": user_query,
+                "context" : context_text,
+                "chat_history" : st.session_state.chat_history,
+                "input": user_query
             }
-        )))
-        #ai_response = st.write_stream(stream_response(get_response(user_query, st.session_state.chat_history, context_text)))
+        )
+        st.write(ai_response["output"])
+        #st.write_stream(stream_response(ai_response))
         
-    st.session_state.chat_history.append(AIMessage(ai_response))
+    st.session_state.chat_history.append(AIMessage(ai_response["output"]))
+    #st.session_state.chat_history.append(AIMessage(ai_response))

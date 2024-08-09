@@ -3,8 +3,11 @@ streamlit
 langchain==0.2.11
 langchain-community==0.2.10
 faiss-cpu==1.8.0
-tiktoken=0.7.0
-pypdf=4.3.1
-beautifulsoup4=4.12.3 
-soupsieve=2.5
-langchain-experimental=0.0.64
+tiktoken==0.7.0
+pypdf==4.3.1
+beautifulsoup4==4.12.3 
+soupsieve==2.5
+langchain-experimental==0.0.64
+langchain-google-vertexai==1.0.8
+langchain-openai
+tabulate==0.9.0

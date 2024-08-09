@@ -43,9 +43,18 @@ source venv/bin/activate
 
 Luego instalar las librerías
 
+`main`
+```
+pip install -r requirements2.txt
+```
+El archivo `requirements.txt` en la rama `main` es usado para depsplegar la app en Streamlit Cloud.
+
+
+`agents`
 ```
 pip install -r requirements.txt
 ```
+
 
 ## API KEY (Google GenerativeAI & OpenAI)
 

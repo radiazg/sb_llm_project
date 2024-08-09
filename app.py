@@ -34,7 +34,7 @@ def get_prompt():
 
     return prompt
 
-def get_faiss():
+def get_faiss(user_query):
     load_db = FAISS.load_local(FAISS_PATH, GoogleGenerativeAIEmbeddings(model="models/embedding-001"), allow_dangerous_deserialization=True)
     context = load_db.max_marginal_relevance_search(user_query, k=3)
     context_text = "\n\n---\n\n".join([doc.page_content for doc in context])
@@ -83,7 +83,7 @@ if user_query is not None and user_query != "":
         
     with st.chat_message("AI"):
         llm = ChatGoogleGenerativeAI(model="gemini-pro", convert_system_message_to_human=True)
-        context_text = get_faiss()
+        context_text = get_faiss(user_query)
         prompt = get_prompt()
         
         chain = prompt | llm

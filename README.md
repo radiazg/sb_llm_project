@@ -7,13 +7,29 @@ secop_project
 
 ## Objetivo del proyecto 
 
-El objetivo del proyecto es grar un agente de LLM con diferentes tools para tener un agente de dialogo, un agente de respuesta con RAG y un agente personal.
-Se usa Google Gemini como LLM.
-
+El objetivo del proyecto es crear un asistente usando Langchain como framework que permita tener un asistente de dialogo, un asistente de recuperación (RAG) y un asistente de  personal usando streamlit para como UI de chat.
 
 ## Información sobre los datos utilizados para el RAG.
 
 Los archivos se almacenan en la carpeta data
+
+ ├── data
+       ├── csv      <- Datos scv
+       ├── pdf      <- Datos pdf
+       ├── txt      <- txt
+
+
+## Información sobre ramas.
+
+Este proyecto consta de dos ramas `main`y `agents`
+
+La rama `main` tiene el asistente de chat y recuperación (RAG) usando el framework Langchain para crear cadenas; usa Google Generative AI como llm, por lo que debe la generar una API Key en Google AI Studio usando la free tier.
+
+La rama `agents` tiene el asistente de chat, el asistente recuperación (RAG) y el sistente personal usando el framework Langchain para crear agentes con `Tools` que permite usarlas para responder a las preguntas hechas por el usuario. usa OpenAI (GPT-4o mini) como llm, por lo que debe la generar una API Key en OpenAI API y tener crédito para su uso.
+
+├── tools
+    ├── FAISS_search      <- Agente que recupera datos del indice FAISS generado
+    ├── CSV_Agent         <- Agente que recupera datos del CSV con key results personales
 
 ## Instalar librerías requeridas para el proyecto
 
@@ -35,9 +51,9 @@ Luego instalar las librerías
 pip install -r requirements.txt
 ```
 
-## API KEY Gemini
+## API KEY (Google GenerativeAI & OpenAI)
 
-La API KEY de Gemini se guarda en el archivo `secrets.toml` en la carpeta `.streamlit/`.
+La API KEY de Google GenerativeAI se guarda en el archivo `secrets.toml` en la carpeta `.streamlit/`.
 
 ```
 # .streamlit/secrets.toml
@@ -46,7 +62,18 @@ La API KEY de Gemini se guarda en el archivo `secrets.toml` en la carpeta `.stre
 api_key_gemini = "your_key"
 ```
 
-## Generar Modelo
+La API KEY de OpenAI se guarda en el archivo `secrets.toml` en la carpeta `.streamlit/`.
+
+```
+# .streamlit/secrets.toml
+
+[openai]
+api_key_openai = "your_key"
+```
+
+La carpeta `.streamlit` no se sincroniza con Github, por lo que debe crear esta carpeta y crear el archivo `secrets.toml`.
+
+## Generar indices FAISS
 
 Una vez instalado las librerías necesarias y para generar los datos en la base de datos vectorial debe ejecutar el Jupyter Notebook `load_data.ipynb`.
 
@@ -61,5 +88,3 @@ streamlit run app.py
 ```
 
 --------
-
-<p><small>Project based on the <a target="_blank" href="https://drivendata.github.io/cookiecutter-data-science/">cookiecutter data science project template</a>. #cookiecutterdatascience</small></p>
